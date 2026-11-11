@@ -60,4 +60,6 @@ npm run dist          # release/MotionFit Setup 0.1.0.exe (installer) and Motion
 The app opens full screen and starts the camera by itself. Run `MotionFit.exe --kiosk` to lock it full screen;
 quit with Settings → Quit, Ctrl+Q or Alt+F4. `MotionFit.exe --smoke=out.png` checks a build without playing:
 it loads the app, verifies the bundled models and prints a JSON report.
+The app icon is drawn in `public/icon.svg`; after editing it, run `npm run icon` to regenerate
+`build/icon.ico` (exe and installer) and `public/icon.png` (window and browser tab).
 The build is not code-signed, so Windows SmartScreen will warn on first run ("More info" → "Run anyway").

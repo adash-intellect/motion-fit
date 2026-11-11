@@ -18,7 +18,8 @@
     "test:watch": "vitest",
     "desktop": "npm run build && electron . --windowed",
     "desktop:dev": "electron . --dev --windowed",
-    "dist": "npm run build && electron-builder --win"
+    "dist": "npm run build && electron-builder --win",
+    "icon": "electron scripts/make-icon.cjs"
   },
   "devDependencies": {
     "@mediapipe/tasks-vision": "^1.2.2",
@@ -46,13 +47,16 @@
       "target": [
         "nsis",
         "portable"
-      ]
+      ],
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "MotionFit"
+      "shortcutName": "MotionFit",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
     },
     "portable": {
       "artifactName": "MotionFit-${version}-portable.exe"

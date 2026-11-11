@@ -71,6 +71,7 @@ function createWindow() {
     autoHideMenuBar: true,
     backgroundColor: '#0b1020',
     title: 'MotionFit',
+    icon: path.join(DIST, 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
