@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MotionFit</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+
+    <div id="pip">
+      <video id="webcam" playsinline muted></video>
+      <canvas id="overlay"></canvas>
+    </div>
+
+    <div id="hud">
+      <div>Render <span id="fps-render">–</span> fps</div>
+      <div>Pose <span id="fps-pose">–</span> fps</div>
+      <div>Inference <span id="latency">–</span> ms</div>
+      <div id="tracking-status" class="warn">No body detected</div>
+      <div>Knee <span id="knee-angle">–</span>°</div>
+      <div class="hint">C recalibrate · R reset · P pause · Esc menu · D debug</div>
+    </div>
+
+    <div id="counters">
+      <div class="counter"><span class="label">Squats</span><span id="count-squat" class="value">0</span></div>
+      <div class="counter"><span class="label">Jumps</span><span id="count-jump" class="value">0</span></div>
+      <div class="counter"><span class="label">Jumping jacks</span><span id="count-jack" class="value">0</span></div>
+      <div class="counter"><span class="label">High knees</span><span id="count-highknee" class="value">0</span></div>
+      <div id="pause-hint">Cross arms in an X to pause <span id="pause-progress"></span></div>
+    </div>
+
+    <div id="calibration" class="hidden">
+      <div id="calib-ring"><span id="calib-pct">0%</span></div>
+      <div id="calib-message">Step back so your whole body is visible</div>
+    </div>
+
+    <div id="toast"></div>
+
+    <div id="menu" class="screen hidden">
+      <h1>MotionFit</h1>
+      <div class="menu-row">
+        <button class="big-btn" id="btn-smash" data-dwell>
+          <span class="btn-icon">🎯</span>Target Smash
+          <small>Best: <span id="best-smash">0</span></small>
+        </button>
+        <button class="big-btn" id="btn-workouts" data-dwell>
+          <span class="btn-icon">🏋️</span>Workouts
+          <small>Guided · voice coach</small>
+        </button>
+        <button class="big-btn" id="btn-free" data-dwell>
+          <span class="btn-icon">💪</span>Free Workout
+          <small>Squats · jumps · jacks · knees</small>
+        </button>
+      </div>
+      <div class="menu-row secondary">
+        <button class="big-btn small-btn" id="btn-avatar" data-dwell>
+          <span class="btn-icon">🧍</span><span id="avatar-name">Robot</span>
+          <small>Change avatar</small>
+        </button>
+        <button class="big-btn small-btn" id="btn-progress" data-dwell>
+          <span class="btn-icon">📈</span>Progress
+          <small><span id="menu-streak">0</span>-day streak</small>
+        </button>
+        <button class="big-btn small-btn" id="btn-settings" data-dwell>
+          <span class="btn-icon">⚙️</span>Settings
+          <small>Screen · voice · camera</small>
+        </button>
+      </div>
+      <p class="hint">Hold a hand over a button to select · or press 1 / 2 / 3 · H progress · S settings · arrows + Enter · A avatar · G graphics · V voice</p>
+    </div>
+
+    <div id="workouts" class="screen hidden">
+      <h2>Choose a workout</h2>
+      <div class="menu-row" id="program-list"></div>
+      <div class="menu-row secondary single">
+        <button class="big-btn small-btn" id="btn-workouts-back" data-dwell>⬅ Back</button>
+      </div>
+      <p class="hint">Press 1 / 2 / 3 · Esc back</p>
+    </div>
+
+    <div id="workout-hud" class="hidden">
+      <div id="w-step">Get ready</div>
+      <div id="w-name"></div>
+      <div id="w-value">0</div>
+      <div class="w-bar"><div id="w-bar-fill"></div></div>
+      <div id="w-cue"></div>
+      <div id="w-next"></div>
+    </div>
+
+    <div id="session-stats">
+      <div><span class="g-label">Time</span><span id="ss-time">0:00</span></div>
+      <div><span class="g-label">kcal (est.)</span><span id="ss-kcal">0</span></div>
+    </div>
+
+    <div id="summary" class="screen hidden">
+      <h2 id="s-heading">Workout complete!</h2>
+      <div id="s-title" class="subtitle"></div>
+      <div class="stats-grid">
+        <div><span id="s-time">0:00</span><small>Time</small></div>
+        <div><span id="s-kcal">0</span><small>kcal (estimate)</small></div>
+        <div><span id="s-reps">0</span><small>Total reps</small></div>
+        <div><span id="s-form">–</span><small>Clean squats</small></div>
+        <div><span id="s-steps">0</span><small>Steps done</small></div>
+        <div><span id="s-streak">0</span><small>Day streak</small></div>
+      </div>
+      <div id="s-tip" class="coach-tip"></div>
+      <div class="menu-row">
+        <button class="big-btn" id="btn-summary-again" data-dwell>🔁 Again</button>
+        <button class="big-btn" id="btn-summary-progress" data-dwell>📈 Progress</button>
+        <button class="big-btn" id="btn-summary-menu" data-dwell>🏠 Menu</button>
+      </div>
+    </div>
+
+    <div id="progress" class="screen hidden">
+      <h2>Your progress</h2>
+      <div class="stats-grid grid-4">
+        <div><span id="p-streak">0</span><small>Day streak</small></div>
+        <div><span id="p-sessions">0</span><small>Sessions · 7 days</small></div>
+        <div><span id="p-minutes">0</span><small>Minutes · 7 days</small></div>
+        <div><span id="p-kcal">0</span><small>kcal · 7 days</small></div>
+      </div>
+      <div id="p-chart" class="week-chart"></div>
+      <div id="p-recent" class="recent-list"></div>
+      <div class="menu-row">
+        <button class="big-btn small-btn" id="btn-weight-down" data-dwell>➖ 5 kg</button>
+        <div id="weight-box">Body weight <b><span id="p-weight">70</span> kg</b><small>used for calorie estimates</small></div>
+        <button class="big-btn small-btn" id="btn-weight-up" data-dwell>➕ 5 kg</button>
+      </div>
+      <div class="menu-row secondary single">
+        <button class="big-btn small-btn" id="btn-progress-back" data-dwell>⬅ Back</button>
+      </div>
+      <p class="hint">Keyboard: - / + change weight by 1 kg · Esc back</p>
+    </div>
+
+    <div id="settings" class="screen hidden">
+      <h2>Settings</h2>
+      <div class="settings-grid">
+        <button class="big-btn small-btn" id="set-fullscreen" data-dwell><small>Full screen</small><b id="set-fullscreen-v">Off</b></button>
+        <button class="big-btn small-btn" id="set-text" data-dwell><small>Text size</small><b id="set-text-v">Normal</b></button>
+        <button class="big-btn small-btn" id="set-margin" data-dwell><small>TV edge margin</small><b id="set-margin-v">Off</b></button>
+        <button class="big-btn small-btn" id="set-voice" data-dwell><small>Voice coach</small><b id="set-voice-v">On</b></button>
+        <button class="big-btn small-btn" id="set-graphics" data-dwell><small>Graphics</small><b id="set-graphics-v">High</b></button>
+        <button class="big-btn small-btn" id="set-model" data-dwell><small>Tracking model</small><b id="set-model-v">Full</b></button>
+        <button class="big-btn small-btn" id="set-autostart" data-dwell><small>Start camera automatically</small><b id="set-autostart-v">On</b></button>
+        <button class="big-btn small-btn" id="set-quit" data-dwell><small>Desktop app</small><b>⏻ Quit</b></button>
+      </div>
+      <p id="set-note" class="hint"></p>
+      <div class="menu-row secondary single">
+        <button class="big-btn small-btn" id="btn-settings-back" data-dwell>⬅ Back</button>
+      </div>
+      <p class="hint">Arrows / d-pad + Enter / A · Esc or Back to return</p>
+    </div>
+
+    <div id="game-hud" class="hidden">
+      <div class="g-box"><span class="g-label">Score</span><span id="g-score">0</span></div>
+      <div class="g-box"><span class="g-label">Combo</span><span id="g-combo">x1</span></div>
+      <div class="g-box"><span class="g-label">Time</span><span id="g-time">60</span></div>
+    </div>
+    <div id="countdown" class="hidden"></div>
+    <div id="popups"></div>
+
+    <div id="results" class="screen hidden">
+      <h2>Round complete!</h2>
+      <div id="new-best" class="hidden">🏆 New personal best!</div>
+      <div class="stats-grid">
+        <div><span id="r-score">0</span><small>Score</small></div>
+        <div><span id="r-accuracy">0%</span><small>Accuracy</small></div>
+        <div><span id="r-combo">0</span><small>Best combo</small></div>
+        <div><span id="r-power">0</span><small>Power hits</small></div>
+        <div><span id="r-squats">0</span><small>Squats</small></div>
+        <div><span id="r-bombs">0</span><small>Bombs hit</small></div>
+      </div>
+      <div class="menu-row">
+        <button class="big-btn" id="btn-again" data-dwell>🔁 Play again</button>
+        <button class="big-btn" id="btn-results-menu" data-dwell>🏠 Menu</button>
+      </div>
+    </div>
+
+    <div id="paused" class="screen hidden">
+      <h2>Paused</h2>
+      <div class="menu-row">
+        <button class="big-btn" id="btn-resume" data-dwell>▶ Resume</button>
+        <button class="big-btn" id="btn-pause-menu" data-dwell>🏠 Menu</button>
+      </div>
+      <p class="hint">Cross your arms in an X or press P to resume</p>
+    </div>
+
+    <div id="start-screen">
+      <h1>MotionFit</h1>
+      <p>Stand 2–3 m from the camera so your whole body is visible.</p>
+      <label>
+        Model
+        <select id="model-select">
+          <option value="lite">Lite (fastest)</option>
+          <option value="full" selected>Full (balanced)</option>
+        </select>
+      </label>
+      <button id="start-btn" data-dwell>Start camera</button>
+      <p id="start-error" class="error"></p>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

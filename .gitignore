@@ -1,0 +1,10 @@
+node_modules
+dist
+public/mediapipe
+public/models
+*.log
+release
+.vs/
+obj/
+bin/
+*.user
