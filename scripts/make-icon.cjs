@@ -1,6 +1,7 @@
 // Renders public/icon.svg into the app icons:
 //   build/icon.ico   (Windows exe / installer; 16–256 px)
 //   public/icon.png  (256 px; window/taskbar icon and web app icon)
+//   public/icon-512.png (512 px; phone home-screen icon / splash, see public/manifest.webmanifest)
 // Run with: npm run icon   (uses Electron's built-in Chromium, so no image tools are needed)
 const { app, BrowserWindow } = require('electron');
 const fs = require('node:fs');
@@ -9,6 +10,7 @@ const path = require('node:path');
 const ROOT = path.join(__dirname, '..');
 const SVG = path.join(ROOT, 'public', 'icon.svg');
 const SIZES = [16, 24, 32, 48, 64, 128, 256];
+const EXTRA = 512; // web app manifest only, not in the .ico
 
 /** ICO container holding PNG images (supported since Windows Vista). */
 function buildIco(pngs) {
@@ -43,7 +45,7 @@ app.whenReady().then(async () => {
     const img = new Image();
     img.src = 'data:image/svg+xml;base64,' + ${JSON.stringify(Buffer.from(svg).toString('base64'))};
     await img.decode();
-    return ${JSON.stringify(SIZES)}.map((size) => {
+    return ${JSON.stringify([...SIZES, EXTRA])}.map((size) => {
       const c = document.createElement('canvas');
       c.width = c.height = size;
       const ctx = c.getContext('2d');
@@ -53,10 +55,12 @@ app.whenReady().then(async () => {
     });
   })()`);
 
+  const big = Buffer.from(dataUrls.pop().split(',')[1], 'base64');
   const pngs = dataUrls.map((url, i) => ({ size: SIZES[i], data: Buffer.from(url.split(',')[1], 'base64') }));
   fs.mkdirSync(path.join(ROOT, 'build'), { recursive: true });
   fs.writeFileSync(path.join(ROOT, 'build', 'icon.ico'), buildIco(pngs));
   fs.writeFileSync(path.join(ROOT, 'public', 'icon.png'), pngs[pngs.length - 1].data);
-  console.log(`icon: ${pngs.map((p) => `${p.size}px`).join(', ')} -> build/icon.ico, public/icon.png`);
+  fs.writeFileSync(path.join(ROOT, 'public', 'icon-512.png'), big);
+  console.log(`icon: ${pngs.map((p) => `${p.size}px`).join(', ')} + 512px -> build/icon.ico, public/icon.png, public/icon-512.png`);
   app.quit();
 });

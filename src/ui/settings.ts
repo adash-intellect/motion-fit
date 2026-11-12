@@ -1,5 +1,6 @@
 import { loadJson, saveJson } from '../game/storage';
 import { desktop } from '../desktop';
+import { isMobile } from './device';
 
 export type TextSize = 'normal' | 'large' | 'xlarge';
 export type ModelChoice = 'lite' | 'full';
@@ -13,7 +14,8 @@ export interface Settings {
   autoStart: boolean;
 }
 
-const DEFAULTS: Settings = { textSize: 'normal', tvMargin: false, model: 'full', autoStart: true };
+// Phones get the faster Lite tracking model by default.
+const DEFAULTS: Settings = { textSize: 'normal', tvMargin: false, model: isMobile ? 'lite' : 'full', autoStart: true };
 export const TEXT_SIZES: TextSize[] = ['normal', 'large', 'xlarge'];
 export const TEXT_SIZE_LABELS: Record<TextSize, string> = { normal: 'Normal', large: 'Large', xlarge: 'Extra large' };
 

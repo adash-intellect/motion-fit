@@ -12,6 +12,7 @@ import { App } from './app';
 import { RemoteNav } from './ui/remoteNav';
 import { applySettings, loadSettings, saveSettings } from './ui/settings';
 import { desktop } from './desktop';
+import { isMobile } from './ui/device';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -42,6 +43,13 @@ const settings = loadSettings();
 applySettings(settings);
 modelSelect.value = settings.model;
 const app = new App(scene3d, motion, panel, cursor, sfx, settings);
+
+// Phones and tablets: compact layout, touch buttons, and low graphics (bloom off) to keep frame rate up.
+if (isMobile) {
+  document.body.classList.add('touch');
+  scene3d.setHighQuality(false);
+}
+$('touch-pause').addEventListener('click', () => tracker && motion.profile && app.togglePause());
 const nav = new RemoteNav({
   back: () => tracker && motion.profile && app.back(),
   pause: () => tracker && motion.profile && app.togglePause(),
@@ -181,9 +189,11 @@ startBtn.addEventListener('click', async () => {
   startBtn.disabled = true;
   startError.textContent = '';
   sfx.unlock(); // audio must be started from a user gesture
+  app.unlockVoice(); // and so must speech on iPhone / iPad
   try {
     startBtn.textContent = 'Opening camera…';
-    await startCamera(video);
+    // Phones: a smaller camera picture is plenty for pose tracking and much faster.
+    await startCamera(video, isMobile ? { width: 640, height: 480 } : undefined);
     startBtn.textContent = 'Loading pose model…';
     tracker = await PoseTracker.create(modelSelect.value as ModelVariant);
     settings.model = modelSelect.value as ModelVariant;

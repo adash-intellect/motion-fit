@@ -22,6 +22,14 @@ export class Coach {
     speechSynthesis.speak(new SpeechSynthesisUtterance(text));
   }
 
+  /** iPhone/iPad only speak after speech has been started from a tap: call from the Start button. */
+  unlock(): void {
+    if (!this.supported) return;
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    speechSynthesis.speak(u);
+  }
+
   toggle(): boolean {
     this.muted = !this.muted;
     saveString('voice', this.muted ? 'off' : 'on');

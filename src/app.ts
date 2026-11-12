@@ -16,6 +16,7 @@ import { CalorieMeter, DEFAULT_WEIGHT_KG, MAX_WEIGHT_KG, MIN_WEIGHT_KG } from '.
 import { addRecord, sanitize, summarize, type SessionMode, type SessionRecord } from './workout/history';
 import { Coach } from './ui/coach';
 import { desktop } from './desktop';
+import { isIOS, isMobile } from './ui/device';
 import {
   TEXT_SIZES, TEXT_SIZE_LABELS, applySettings, fullscreenState, saveSettings, setFullscreen, type Settings,
 } from './ui/settings';
@@ -185,6 +186,11 @@ export class App {
     else if (m !== 'calibrating' && m !== 'menu') this.toMenu();
   }
 
+  /** Call from a tap / click (iPhone only allows speech after one). */
+  unlockVoice(): void {
+    this.coach.unlock();
+  }
+
   togglePause(): void {
     this.motion.setPaused(!this.motion.paused);
   }
@@ -199,7 +205,13 @@ export class App {
   private async toggleFullscreen(): Promise<void> {
     const on = !(await fullscreenState());
     const ok = await setFullscreen(on);
-    if (!ok) $('set-note').textContent = 'In the browser, press F on the keyboard to switch full screen.';
+    if (!ok) {
+      $('set-note').textContent = isIOS
+        ? 'iPhone / iPad: tap Share → Add to Home Screen, then open MotionFit from there for full screen.'
+        : isMobile
+          ? 'Tap the Full screen button directly (holding a hand over it does not work for this one).'
+          : 'In the browser, press F on the keyboard to switch full screen.';
+    }
     // The window needs a moment to change size before the state is read back.
     setTimeout(() => this.renderSettings(), 400);
   }

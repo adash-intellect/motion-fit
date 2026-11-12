@@ -9,6 +9,7 @@ import type { Avatar, ScenePose } from './avatars/types';
 import { RobotAvatar } from './avatars/robotAvatar';
 import { SkeletonAvatar } from './avatars/skeletonAvatar';
 import { RiggedAvatar } from './avatars/riggedAvatar';
+import { isMobile } from '../ui/device';
 
 export type AvatarKind = 'robot' | 'character' | 'skeleton';
 export const AVATAR_KINDS: AvatarKind[] = ['robot', 'character', 'skeleton'];
@@ -70,7 +71,8 @@ export class Stage {
 
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    // Phones have very dense screens; rendering at full density costs a lot of battery and frame rate.
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 1.5));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -290,6 +292,17 @@ export class Stage {
     this.composer.setSize(w, h);
     this.bloom.resolution.set(w / 2, h / 2);
     this.camera.aspect = w / h;
+    this.camera.fov = fovFor(w / h);
     this.camera.updateProjectionMatrix();
   }
+}
+
+/**
+ * Vertical field of view for a screen shape. Wide screens use 50°. Tall (portrait phone) screens
+ * widen it so the arena, the goal and outstretched arms still fit side to side (capped at 84°).
+ */
+export function fovFor(aspect: number): number {
+  const minHalfWidth = 0.6; // tan of half the horizontal view
+  const tanHalf = Math.min(Math.tan((42 * Math.PI) / 180), Math.max(Math.tan((25 * Math.PI) / 180), minHalfWidth / aspect));
+  return (2 * Math.atan(tanHalf) * 180) / Math.PI;
 }

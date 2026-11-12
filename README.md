@@ -57,6 +57,12 @@ Just-for-fun games (menu key 4). They keep a high score each but are not saved t
 - **Settings** (menu, key S): full screen, text size, TV edge margin (for TVs that crop the picture), voice coach, graphics, tracking model, automatic camera start.
 - The mouse pointer hides itself, and the screen is kept awake while MotionFit runs.
 
+## Phones and tablets
+Open the web link in Chrome (Android) or Safari (iPhone / iPad). Prop the phone up at about waist height, sideways for the widest view, and step back until your feet are in the picture.
+- Touch devices get the Lite tracking model, low graphics, a compact layout and an on-screen pause button. Tap buttons directly or hold a hand over them.
+- Install it like an app: Android Chrome menu → Add to Home screen / Install app; iPhone Safari Share → Add to Home Screen. It then opens full screen.
+- A big screen is nicer: cast or mirror the phone to a TV.
+
 ## Desktop app (Windows)
 ```bash
 npm run desktop       # build and run in a window

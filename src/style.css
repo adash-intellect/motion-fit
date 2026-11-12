@@ -494,3 +494,137 @@ body.hide-mouse, body.hide-mouse * { cursor: none !important; }
 #play-hud .wide { font-size: 1.6rem; color: #e879f9; white-space: nowrap; }
 #pr-best { font-size: 1.6rem; color: var(--warn); font-weight: 800; }
 #playresults .stats-grid span { color: #e879f9; }
+
+/* ---------- Mobile / touch ---------- */
+html, body { height: 100dvh; }
+body { touch-action: manipulation; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+.touch-only, #touch-pause { display: none; }
+body.touch .touch-only { display: block; }
+body.touch .keys { display: none; }
+body.touch #hud { display: none !important; } /* frame-rate debug panel */
+.phone-tip { max-width: 30rem; opacity: 0.85; color: var(--warn); }
+
+/* On-screen pause (phones have no P / Esc key). */
+body.touch.running.mode-smash #touch-pause,
+body.touch.running.mode-free #touch-pause,
+body.touch.running.mode-workout #touch-pause,
+body.touch.running.mode-play #touch-pause {
+  display: grid;
+  place-items: center;
+  position: fixed;
+  left: calc(0.75rem + env(safe-area-inset-left));
+  top: calc(0.75rem + env(safe-area-inset-top));
+  width: 3.2rem;
+  height: 3.2rem;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  z-index: 40;
+}
+
+/* Screens scroll if they don't fit, and keep clear of notches and rounded corners. */
+.screen {
+  overflow-y: auto;
+  justify-content: safe center;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+}
+
+/* Small screens: phones in portrait (narrow) or landscape (short). */
+@media (max-width: 700px), (max-height: 500px) {
+  .screen { gap: 0.8rem; }
+  .screen h1 { font-size: 2.2rem; }
+  .screen h2, #start-screen h1 { font-size: 1.9rem; }
+  .subtitle { font-size: 1rem; margin-top: -0.4rem; }
+
+  .menu-row,
+  .menu-row.secondary,
+  #menu .menu-row.secondary,
+  #menu .menu-row:first-of-type {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: min(100%, 40rem);
+    gap: 0.7rem;
+  }
+  .menu-row.single { grid-template-columns: minmax(0, 14rem); justify-content: center; }
+  .menu-row:has(> :nth-child(3):last-child),
+  #menu .menu-row.secondary:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .menu-row:has(#weight-box) { grid-template-columns: 1fr 1.3fr 1fr; }
+  .big-btn, .big-btn.small-btn, .play-row .big-btn, #menu .menu-row.secondary .small-btn {
+    min-height: 5.2rem;
+    font-size: 1.05rem;
+    padding: 0.5rem;
+    border-width: 2px;
+    border-radius: 0.8rem;
+    align-self: stretch;
+  }
+  .big-btn small { font-size: 0.75rem; }
+  .btn-icon { font-size: 1.7rem; }
+
+  .stats-grid, .stats-grid.grid-4 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+  .stats-grid div { padding: 0.5rem; }
+  .stats-grid span { font-size: 1.6rem; }
+  .stats-grid small { font-size: 0.75rem; }
+  .settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; width: min(100%, 40rem); }
+  .settings-grid .big-btn.small-btn { min-height: 4.5rem; }
+  .settings-grid b { font-size: 1.1rem; }
+  .week-chart { height: 5.5rem; width: min(94vw, 36rem); }
+  .recent-row { grid-template-columns: 2fr 1fr 1fr; font-size: 0.8rem; }
+  .recent-row span:nth-child(2), .recent-row span:nth-child(3) { display: none; }
+  #weight-box b { font-size: 1.5rem; }
+
+  #game-hud, #play-hud { top: calc(0.5rem + env(safe-area-inset-top)); gap: 0.4rem; }
+  .g-box { min-width: 4.5rem; padding: 0.3rem 0.6rem; }
+  .g-box span:last-child { font-size: 1.4rem; }
+  #play-hud .wide { font-size: 1rem; }
+  #workout-hud { top: calc(0.5rem + env(safe-area-inset-top)); padding: 0.5rem 0.8rem; width: min(70vw, 26rem); }
+  #w-name { font-size: 1.3rem; }
+  #w-value { font-size: 2.6rem; }
+  #w-cue { font-size: 0.9rem; }
+  #counters { min-width: 9rem; top: calc(0.5rem + env(safe-area-inset-top)); right: 0.5rem; gap: 0.3rem; }
+  .counter { padding: 0.2rem 0.6rem; font-size: 0.8rem; }
+  .counter .value { font-size: 1.3rem; }
+  #session-stats > div { min-width: 4.5rem; padding: 0.3rem 0.5rem; }
+  #session-stats span:last-child { font-size: 1.2rem; }
+
+  #pip { width: 26vw; min-width: 90px; right: 0.5rem; bottom: 0.5rem; }
+  #toast { font-size: 1.4rem; white-space: normal; width: 90vw; text-align: center; }
+  #countdown { font-size: 6rem; }
+  .popup { font-size: 1.2rem; }
+  .popup.power { font-size: 1.5rem; }
+  #calib-ring { width: 6.5rem; height: 6.5rem; font-size: 1.3rem; }
+  #calib-message { font-size: 1.15rem; }
+}
+
+/* Portrait phones: the camera picture is tall, and buttons can be a little taller. */
+@media (max-width: 700px) and (orientation: portrait) {
+  #pip { aspect-ratio: 3 / 4; width: 24vw; }
+  /* Stay clear of the round pause button in the top-left corner. */
+  #play-hud, #game-hud { flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 8.5rem); }
+}
+
+/* Landscape phones: little height, so put more buttons on each row and make them shorter. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .screen { gap: 0.5rem; }
+  .screen h1 { font-size: 1.7rem; }
+  .screen h2 { font-size: 1.5rem; }
+  .menu-row, .menu-row.secondary, #menu .menu-row.secondary, #menu .menu-row:first-of-type {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: min(100%, 52rem);
+    gap: 0.5rem;
+  }
+  .menu-row:has(> :nth-child(3):last-child),
+  #menu .menu-row.secondary:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .menu-row:has(> :nth-child(2):last-child) { grid-template-columns: repeat(2, minmax(0, 16rem)); justify-content: center; }
+  .big-btn, .big-btn.small-btn, .play-row .big-btn, #menu .menu-row.secondary .small-btn { min-height: 3.8rem; padding: 0.35rem; }
+  .btn-icon { font-size: 1.3rem; }
+  .stats-grid, .stats-grid.grid-4 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .stats-grid.grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .settings-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 52rem); }
+  .settings-grid .big-btn.small-btn { min-height: 3.6rem; }
+  #pip { width: 18vw; }
+}
+body.touch #set-margin { display: none; }

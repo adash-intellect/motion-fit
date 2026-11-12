@@ -2,7 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="MotionFit" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <title>MotionFit</title>
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="icon" type="image/png" sizes="256x256" href="/icon.png" />
@@ -23,7 +29,7 @@
       <div>Inference <span id="latency">–</span> ms</div>
       <div id="tracking-status" class="warn">No body detected</div>
       <div>Knee <span id="knee-angle">–</span>°</div>
-      <div class="hint">C recalibrate · R reset · P pause · Esc menu · D debug</div>
+      <div class="hint keys">C recalibrate · R reset · P pause · Esc menu · D debug</div>
     </div>
 
     <div id="counters">
@@ -40,6 +46,7 @@
     </div>
 
     <div id="toast"></div>
+    <button id="touch-pause" aria-label="Pause">⏸</button>
 
     <div id="menu" class="screen hidden">
       <h1>MotionFit</h1>
@@ -75,7 +82,7 @@
           <small>Screen · voice · camera</small>
         </button>
       </div>
-      <p class="hint">Hold a hand over a button to select · or press 1 / 2 / 3 / 4 · H progress · S settings · arrows + Enter · A avatar · G graphics · V voice</p>
+      <p class="hint keys">Hold a hand over a button to select · or press 1 / 2 / 3 / 4 · H progress · S settings · arrows + Enter · A avatar · G graphics · V voice</p>
     </div>
 
     <div id="workouts" class="screen hidden">
@@ -84,7 +91,7 @@
       <div class="menu-row secondary single">
         <button class="big-btn small-btn" id="btn-workouts-back" data-dwell>⬅ Back</button>
       </div>
-      <p class="hint">Press 1 / 2 / 3 · Esc back</p>
+      <p class="hint keys">Press 1 / 2 / 3 · Esc back</p>
     </div>
 
     <div id="playzone" class="screen hidden">
@@ -103,7 +110,8 @@
       <div class="menu-row secondary single">
         <button class="big-btn small-btn" id="btn-playzone-back" data-dwell>⬅ Back</button>
       </div>
-      <p class="hint">Press 1 / 2 · Esc back · 3 lives in each game</p>
+      <p class="hint keys">Press 1 / 2 · Esc back</p>
+      <p class="hint">3 lives in each game</p>
     </div>
 
     <div id="play-hud" class="hidden"></div>
@@ -171,7 +179,7 @@
       <div class="menu-row secondary single">
         <button class="big-btn small-btn" id="btn-progress-back" data-dwell>⬅ Back</button>
       </div>
-      <p class="hint">Keyboard: - / + change weight by 1 kg · Esc back</p>
+      <p class="hint keys">Keyboard: - / + change weight by 1 kg · Esc back</p>
     </div>
 
     <div id="settings" class="screen hidden">
@@ -190,7 +198,7 @@
       <div class="menu-row secondary single">
         <button class="big-btn small-btn" id="btn-settings-back" data-dwell>⬅ Back</button>
       </div>
-      <p class="hint">Arrows / d-pad + Enter / A · Esc or Back to return</p>
+      <p class="hint keys">Arrows / d-pad + Enter / A · Esc or Back to return</p>
     </div>
 
     <div id="game-hud" class="hidden">
@@ -230,6 +238,7 @@
     <div id="start-screen">
       <h1>MotionFit</h1>
       <p>Stand 2–3 m from the camera so your whole body is visible.</p>
+      <p class="touch-only phone-tip">On a phone: prop it up at waist height (sideways gives the best view) and step back until your feet are in the picture.</p>
       <label>
         Model
         <select id="model-select">

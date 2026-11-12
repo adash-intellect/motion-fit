@@ -25,6 +25,7 @@ const MIME = {
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
+  '.webmanifest': 'application/manifest+json',
 };
 
 // A "secure" standard scheme: camera access, fetch() of the wasm/models and localStorage all work,
