@@ -56,6 +56,10 @@
           <span class="btn-icon">💪</span>Free Workout
           <small>Squats · jumps · jacks · knees</small>
         </button>
+        <button class="big-btn play-btn" id="btn-playzone" data-dwell>
+          <span class="btn-icon">🕹️</span>Play Zone
+          <small>Just for fun</small>
+        </button>
       </div>
       <div class="menu-row secondary">
         <button class="big-btn small-btn" id="btn-avatar" data-dwell>
@@ -71,7 +75,7 @@
           <small>Screen · voice · camera</small>
         </button>
       </div>
-      <p class="hint">Hold a hand over a button to select · or press 1 / 2 / 3 · H progress · S settings · arrows + Enter · A avatar · G graphics · V voice</p>
+      <p class="hint">Hold a hand over a button to select · or press 1 / 2 / 3 / 4 · H progress · S settings · arrows + Enter · A avatar · G graphics · V voice</p>
     </div>
 
     <div id="workouts" class="screen hidden">
@@ -81,6 +85,39 @@
         <button class="big-btn small-btn" id="btn-workouts-back" data-dwell>⬅ Back</button>
       </div>
       <p class="hint">Press 1 / 2 / 3 · Esc back</p>
+    </div>
+
+    <div id="playzone" class="screen hidden">
+      <h2>Play Zone</h2>
+      <div class="subtitle">Just for fun · no reps, no calories, just high scores</div>
+      <div class="menu-row play-row">
+        <button class="big-btn play-btn" id="btn-goalkeeper" data-dwell>
+          <span class="btn-icon">🧤</span>Goalkeeper
+          <small>Block the shots with hands or feet · Best: <span id="best-goalkeeper">0</span></small>
+        </button>
+        <button class="big-btn play-btn" id="btn-shapefit" data-dwell>
+          <span class="btn-icon">🧱</span>Shape Fit
+          <small>Strike the pose before the wall hits · Best: <span id="best-shapefit">0</span></small>
+        </button>
+      </div>
+      <div class="menu-row secondary single">
+        <button class="big-btn small-btn" id="btn-playzone-back" data-dwell>⬅ Back</button>
+      </div>
+      <p class="hint">Press 1 / 2 · Esc back · 3 lives in each game</p>
+    </div>
+
+    <div id="play-hud" class="hidden"></div>
+
+    <div id="playresults" class="screen hidden">
+      <h2>Game over</h2>
+      <div id="pr-title" class="subtitle"></div>
+      <div id="pr-best" class="hidden">🏆 New high score!</div>
+      <div id="pr-stats" class="stats-grid"></div>
+      <div class="menu-row">
+        <button class="big-btn" id="btn-play-again" data-dwell>🔁 Play again</button>
+        <button class="big-btn" id="btn-play-zone" data-dwell>🕹️ Play Zone</button>
+        <button class="big-btn" id="btn-play-menu" data-dwell>🏠 Menu</button>
+      </div>
     </div>
 
     <div id="workout-hud" class="hidden">

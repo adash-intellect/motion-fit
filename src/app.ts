@@ -6,6 +6,9 @@ import type { HandCursor } from './ui/handCursor';
 import type { Sfx } from './game/sfx';
 import { TargetSmash } from './game/targetSmash';
 import { accuracy } from './game/smashRules';
+import type { ArcadeGame, HudBox, PlayId, ResultStat } from './game/arcadeGame';
+import { Goalkeeper } from './game/goalkeeper';
+import { ShapeFit } from './game/shapeFit';
 import { loadJson, loadNumber, loadString, saveJson, saveNumber, saveString } from './game/storage';
 import { EXERCISES, HOLD_KNEE_DEG, PROGRAMS, type Program, type RepExercise } from './workout/programs';
 import { WorkoutRunner, type WorkoutSummary } from './workout/workoutRunner';
@@ -22,12 +25,15 @@ import {
 
 type Mode =
   | 'calibrating' | 'menu' | 'smash' | 'results' | 'free'
-  | 'workouts' | 'workout' | 'summary' | 'progress' | 'settings';
+  | 'workouts' | 'workout' | 'summary' | 'progress' | 'settings'
+  | 'playzone' | 'play' | 'playresults';
 const MODES: Mode[] = [
   'calibrating', 'menu', 'smash', 'results', 'free', 'workouts', 'workout', 'summary', 'progress', 'settings',
+  'playzone', 'play', 'playresults',
 ];
 /** Full-screen menus (one element each, id = mode name). The hand cursor is shown on these. */
-const SCREENS = ['menu', 'results', 'workouts', 'summary', 'progress', 'settings'] as const;
+const SCREENS = ['menu', 'results', 'workouts', 'summary', 'progress', 'settings', 'playzone', 'playresults'] as const;
+const PLAY_IDS: PlayId[] = ['goalkeeper', 'shapefit'];
 const CURSOR_MODES: Mode[] = [...SCREENS];
 
 /** Free-workout time counts as exercise for this long after the last rep. */
@@ -55,6 +61,9 @@ const $ = (id: string) => document.getElementById(id) as HTMLElement;
 export class App {
   private mode: Mode = 'calibrating';
   private readonly game: TargetSmash;
+  /** Play Zone games (just for fun: not saved to history). */
+  private readonly plays: Record<PlayId, ArcadeGame>;
+  private play: ArcadeGame | null = null;
   private readonly runner = new WorkoutRunner();
   private readonly coach = new Coach();
   private best = loadNumber('best.smash');
@@ -76,15 +85,19 @@ export class App {
     private readonly settings: Settings,
   ) {
     this.game = new TargetSmash(scene3d, sfx);
+    this.plays = { goalkeeper: new Goalkeeper(scene3d, sfx), shapefit: new ShapeFit(scene3d, sfx) };
     scene3d.onFrame = (dt) => {
       this.game.update(dt);
+      for (const id of PLAY_IDS) this.plays[id].update(dt);
       this.update(dt);
     };
     $('best-smash').textContent = String(this.best);
+    this.refreshPlayBests();
     buildProgramButtons((p) => this.startWorkout(p));
 
     this.bindMotion();
     this.bindGame();
+    for (const id of PLAY_IDS) this.bindPlay(this.plays[id]);
     this.bindWorkout();
     this.bindButtons();
     this.refreshMenu();
@@ -122,11 +135,13 @@ export class App {
   /** Call on every new pose frame. */
   onPose(nowMs: number): void {
     this.game.onPose(nowMs);
+    if (this.mode === 'play') this.play?.onPose(nowMs);
   }
 
   recalibrate(): void {
     this.endSession();
     this.game.stop();
+    this.stopPlay();
     this.motion.setPaused(false);
     this.motion.recalibrate();
     this.panel.showCalibration();
@@ -138,6 +153,8 @@ export class App {
     if (m === 'menu' && key === '1') this.startSmash();
     else if (m === 'menu' && key === '2') this.setMode('workouts');
     else if (m === 'menu' && key === '3') this.startFree();
+    else if (m === 'menu' && key === '4') this.openPlayZone();
+    else if (m === 'playzone' && PLAY_IDS[Number(key) - 1]) this.startPlay(PLAY_IDS[Number(key) - 1]);
     else if (m === 'menu' && key === 'h') this.showProgress('menu');
     else if (m === 'menu' && key === 's') this.openSettings();
     else if (m === 'workouts' && PROGRAMS[Number(key) - 1]) this.startWorkout(PROGRAMS[Number(key) - 1]);
@@ -163,7 +180,8 @@ export class App {
     const m = this.mode;
     if (this.motion.paused) this.motion.setPaused(false);
     else if (m === 'progress') this.setMode(this.progressBack);
-    else if (m === 'workouts' || m === 'settings') this.setMode('menu');
+    else if (m === 'workouts' || m === 'settings' || m === 'playzone') this.setMode('menu');
+    else if (m === 'play' || m === 'playresults') this.openPlayZone();
     else if (m !== 'calibrating' && m !== 'menu') this.toMenu();
   }
 
@@ -242,13 +260,15 @@ export class App {
     for (const id of SCREENS) $(id).classList.toggle('hidden', mode !== id);
     $('set-note').textContent = '';
     $('game-hud').classList.toggle('hidden', mode !== 'smash' && mode !== 'results');
+    $('play-hud').classList.toggle('hidden', mode !== 'play');
     $('workout-hud').classList.toggle('hidden', mode !== 'workout');
-    if (mode !== 'smash' && mode !== 'workout') $('countdown').classList.add('hidden');
+    if (mode !== 'smash' && mode !== 'workout' && mode !== 'play') $('countdown').classList.add('hidden');
     if (mode === 'menu') this.refreshMenu();
 
     this.panel.quiet = mode !== 'free';
-    this.scene3d.setView(mode === 'smash' || mode === 'results' ? 'behind' : 'mirror');
-    this.scene3d.setHandsHighlighted(mode === 'smash');
+    const arena = mode === 'smash' || mode === 'results' || mode === 'play' || mode === 'playresults';
+    this.scene3d.setView(arena ? 'behind' : 'mirror');
+    this.scene3d.setHandsHighlighted(mode === 'smash' || (mode === 'play' && this.play?.id === 'goalkeeper'));
     this.updateCursor();
     this.onScreenChange?.();
   }
@@ -261,6 +281,7 @@ export class App {
   private toMenu(): void {
     this.endSession();
     this.game.stop();
+    this.stopPlay();
     this.motion.setPaused(false);
     $('best-smash').textContent = String(this.best);
     this.setMode('menu');
@@ -277,6 +298,52 @@ export class App {
     this.setMode('smash');
     this.renderHud(60, 0, 0, 1);
     this.game.start();
+  }
+
+  // ---------------------------------------------------------------- Play Zone
+
+  private openPlayZone(): void {
+    this.stopPlay();
+    this.motion.setPaused(false);
+    this.refreshPlayBests();
+    this.setMode('playzone');
+  }
+
+  private startPlay(id: PlayId): void {
+    this.endSession();
+    this.game.stop();
+    this.stopPlay();
+    this.motion.setPaused(false);
+    this.play = this.plays[id];
+    this.setMode('play');
+    this.play.start();
+  }
+
+  private stopPlay(): void {
+    for (const id of PLAY_IDS) this.plays[id].stop();
+  }
+
+  private refreshPlayBests(): void {
+    for (const id of PLAY_IDS) $(`best-${id}`).textContent = String(loadNumber(`best.${id}`));
+  }
+
+  private bindPlay(g: ArcadeGame): void {
+    const ev = g.events;
+    ev.on('countdown', ({ value }) => this.showCountdown(value > 0 ? String(value) : 'GO!'));
+    ev.on('hud', ({ boxes }) => renderPlayHud(boxes));
+    ev.on('popup', ({ text, cls, screen }) => this.popup(text, cls, screen));
+    ev.on('announce', ({ text }) => {
+      this.panel.toast(text, 'ok');
+      this.coach.say(text);
+    });
+    ev.on('end', ({ score, stats }) => {
+      const key = `best.${g.id}`;
+      const isBest = score > loadNumber(key);
+      if (isBest) saveNumber(key, score);
+      renderPlayResults(g.title, isBest, stats);
+      this.coach.say(isBest ? `Game over. New high score, ${score}!` : `Game over. You scored ${score}.`);
+      this.setMode('playresults');
+    });
   }
 
   private startFree(): void {
@@ -464,12 +531,13 @@ export class App {
     });
 
     ev.on('pauseToggle', ({ paused }) => {
-      const pausable = this.mode === 'smash' || this.mode === 'free' || this.mode === 'workout';
+      const pausable = this.mode === 'smash' || this.mode === 'free' || this.mode === 'workout' || this.mode === 'play';
       if (paused && !pausable) {
         this.motion.setPaused(false); // nothing to pause on menus
         return;
       }
       this.game.paused = paused;
+      if (this.play) this.play.paused = paused;
       $('paused').classList.toggle('hidden', !paused);
       this.updateCursor();
       this.onScreenChange?.();
@@ -477,7 +545,10 @@ export class App {
 
     // Auto-pause if the player walks out of view mid-round or mid-workout.
     ev.on('tracking', ({ lost }) => {
-      const running = (this.mode === 'smash' && this.game.isActive) || (this.mode === 'workout' && this.runner.isRunning);
+      const running =
+        (this.mode === 'smash' && this.game.isActive) ||
+        (this.mode === 'workout' && this.runner.isRunning) ||
+        (this.mode === 'play' && !!this.play?.isActive);
       if (lost && running) this.motion.setPaused(true);
     });
   }
@@ -582,6 +653,13 @@ export class App {
     on('btn-resume', () => this.motion.setPaused(false));
     on('btn-pause-menu', () => this.toMenu());
     on('btn-settings', () => this.openSettings());
+    on('btn-playzone', () => this.openPlayZone());
+    on('btn-goalkeeper', () => this.startPlay('goalkeeper'));
+    on('btn-shapefit', () => this.startPlay('shapefit'));
+    on('btn-playzone-back', () => this.setMode('menu'));
+    on('btn-play-again', () => this.play && this.startPlay(this.play.id));
+    on('btn-play-zone', () => this.openPlayZone());
+    on('btn-play-menu', () => this.toMenu());
     on('btn-settings-back', () => this.setMode('menu'));
     on('set-fullscreen', () => void this.toggleFullscreen());
     on('set-text', () =>
@@ -635,4 +713,38 @@ export class App {
     $('popups').appendChild(el);
     setTimeout(() => el.remove(), 800);
   }
+}
+
+/** Top-center HUD for Play Zone games: whatever boxes the game sends. */
+function renderPlayHud(boxes: HudBox[]): void {
+  $('play-hud').replaceChildren(
+    ...boxes.map((b) => {
+      const box = document.createElement('div');
+      box.className = 'g-box';
+      const label = document.createElement('span');
+      label.className = 'g-label';
+      label.textContent = b.label;
+      const value = document.createElement('span');
+      value.textContent = b.value;
+      if (b.cls) value.className = b.cls;
+      box.append(label, value);
+      return box;
+    }),
+  );
+}
+
+function renderPlayResults(title: string, isBest: boolean, stats: ResultStat[]): void {
+  $('pr-title').textContent = title;
+  $('pr-best').classList.toggle('hidden', !isBest);
+  $('pr-stats').replaceChildren(
+    ...stats.map((s) => {
+      const cell = document.createElement('div');
+      const value = document.createElement('span');
+      value.textContent = s.value;
+      const label = document.createElement('small');
+      label.textContent = s.label;
+      cell.append(value, label);
+      return cell;
+    }),
+  );
 }

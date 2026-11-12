@@ -17,7 +17,7 @@ Browsers only allow camera access on `localhost` or HTTPS.
 ```
 src/pose/    camera, PoseTracker (MediaPipe wrapper), One Euro smoothing
 src/motion/  MotionEngine: calibration, exercise detectors (squat, jump, jumping jack, high knee), squat form checks, typed events
-src/game/    Target Smash (targetSmash.ts), tunable rules (smashRules.ts), particles, sfx, storage
+src/game/    Target Smash, Play Zone games (Goalkeeper, Shape Fit; rules in *Rules.ts), particles, sfx, storage
 src/workout/ guided programs, WorkoutRunner, calorie estimates (MET), session history and streaks
 src/app.ts   screen/mode controller: calibrate → menu → game / guided workout / free workout → results, progress
 src/scene/   Stage (renderer, bloom, views), neon arena (environment.ts), avatars/ (robot, rigged character, skeleton)
@@ -33,6 +33,7 @@ electron/    desktop shell (main.cjs serves dist/ over app://, camera-only permi
 - [x] Phase 2.5: neon arena, switchable avatars (robot / rigged Mixamo character / skeleton), bloom with auto quality
 - [x] Phase 3: guided workouts with voice coach, squat form tips, high knees, calorie estimates, history and streaks
 - [x] Phase 4: TV UI (remote / gamepad navigation, settings, text size, TV edge margin) + Electron desktop app
+- [x] Play Zone: Goalkeeper and Shape Fit, just-for-fun motion games with high scores
 
 ## Changing the character
 `public/models/character.glb` is the Mixamo "X Bot" from the three.js examples. Replace it with any
@@ -45,6 +46,11 @@ electron/    desktop shell (main.cjs serves dist/ over app://, camera-only permi
 - **Calories** are an estimate: MET × body weight × time. Set your weight on the Progress screen.
 - **History** is stored in the browser (localStorage, key `motionfit.history`) on this machine only.
 - Keys: N skip a workout step · V voice coach on/off · H progress · - / + weight on the Progress screen.
+
+## Play Zone
+Just-for-fun games (menu key 4). They keep a high score each but are not saved to workout history.
+- **Goalkeeper**: block shots at the goal behind you with your hands (or feet for low balls). Curve balls, fireballs and double shots arrive as it speeds up. 3 goals and it is over.
+- **Shape Fit**: walls with a body-shaped opening slide toward you; strike the pose before they arrive. Each limb lights green when it matches. One limb slightly off is "Good", anything more is a crash. 3 crashes and it is over.
 
 ## TV and remote control
 - Arrow keys, a TV remote or a gamepad (d-pad / stick) move a highlight over the buttons; Enter or A presses; Backspace, Back or B goes back; Start pauses.

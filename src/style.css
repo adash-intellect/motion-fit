@@ -474,3 +474,23 @@ body.hide-mouse, body.hide-mouse * { cursor: none !important; }
 #set-quit b { color: var(--err); }
 @media (max-width: 900px) { .settings-grid { grid-template-columns: repeat(2, minmax(9rem, 1fr)); } }
 #menu .menu-row.secondary { width: min(80vw, 60rem); }
+
+/* ---------- Play Zone ---------- */
+#menu .menu-row:first-of-type { width: min(92vw, 78rem); gap: 1.5rem; }
+.big-btn.play-btn { border-color: #e879f9; background: rgba(232, 121, 249, 0.15); }
+.big-btn.play-btn::before { background: #e879f9; }
+.play-row { justify-content: space-around; }
+.play-row .big-btn { flex-basis: 22rem; min-height: 11rem; }
+#play-hud {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+}
+#play-hud .low { color: var(--err); }
+#play-hud .hot { color: var(--warn); }
+#play-hud .wide { font-size: 1.6rem; color: #e879f9; white-space: nowrap; }
+#pr-best { font-size: 1.6rem; color: var(--warn); font-weight: 800; }
+#playresults .stats-grid span { color: #e879f9; }
